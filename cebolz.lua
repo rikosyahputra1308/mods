@@ -1,126 +1,284 @@
--- GrowBlox Auto Plant - Server Script
--- Place in ServerScriptService as AutoPlantServer.server.lua
--- Required:
--- ReplicatedStorage/SeedModels (Folder containing plant Models)
--- Workspace/PlantSpots (Folder containing BaseParts)
--- Each PlantSpot needs OwnerUserId (Number) attribute.
+--================================
+-- CEBOL MOD V3
+-- GROWBLOX GUI
+--================================
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UIS = game:GetService("UserInputService")
 
-local seedModels = ReplicatedStorage:WaitForChild("SeedModels")
-local plantSpots = workspace:WaitForChild("PlantSpots")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local remotes = ReplicatedStorage:FindFirstChild("AutoPlantRemotes")
-if not remotes then
-    remotes = Instance.new("Folder")
-    remotes.Name = "AutoPlantRemotes"
-    remotes.Parent = ReplicatedStorage
+-- HAPUS GUI LAMA
+local Old = PlayerGui:FindFirstChild("CEBOL_MOD")
+if Old then
+    Old:Destroy()
 end
 
-local plantEvent = remotes:FindFirstChild("PlantRequest")
-if not plantEvent then
-    plantEvent = Instance.new("RemoteEvent")
-    plantEvent.Name = "PlantRequest"
-    plantEvent.Parent = remotes
+-- WARNA
+local Purple = Color3.fromRGB(140, 75, 255)
+local Dark = Color3.fromRGB(23, 22, 32)
+local Panel = Color3.fromRGB(38, 35, 49)
+local White = Color3.fromRGB(255,255,255)
+
+-- GUI
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "CEBOL_MOD"
+GUI.ResetOnSpawn = false
+GUI.Parent = PlayerGui
+
+-- FUNGSI
+local function Create(class, parent, props)
+    local obj = Instance.new(class)
+
+    for k,v in pairs(props) do
+        obj[k] = v
+    end
+
+    obj.Parent = parent
+    return obj
 end
 
-local getSeeds = remotes:FindFirstChild("GetSeeds")
-if not getSeeds then
-    getSeeds = Instance.new("RemoteFunction")
-    getSeeds.Name = "GetSeeds"
-    getSeeds.Parent = remotes
+local function Corner(obj, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0,radius)
+    c.Parent = obj
 end
 
-local lastRequest = {}
-local REQUEST_COOLDOWN = 0.35
+-- MAIN
+local Main = Create("Frame",GUI,{
+    Name = "Main",
+    Size = UDim2.new(0,850,0,460),
+    Position = UDim2.new(0.5,-425,0.5,-230),
+    BackgroundColor3 = Dark,
+    BorderSizePixel = 0
+})
 
-local function getSeedNames()
-    local names = {}
-    for _, seed in ipairs(seedModels:GetChildren()) do
-        if seed:IsA("Model") then
-            table.insert(names, seed.Name)
-        end
-    end
-    table.sort(names)
-    return names
+Corner(Main,15)
+
+-- HEADER
+local Header = Create("Frame",Main,{
+    Size = UDim2.new(1,0,0,42),
+    BackgroundColor3 = Dark,
+    BorderSizePixel = 0
+})
+
+-- TITLE
+Create("TextLabel",Header,{
+    Size = UDim2.new(0,250,1,0),
+    Position = UDim2.new(0,15,0,0),
+    BackgroundTransparency = 1,
+    Text = "CEBOL MOD V3",
+    TextColor3 = White,
+    TextSize = 18,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+-- MINIMIZE
+local Min = Create("TextButton",Header,{
+    Size = UDim2.new(0,35,0,30),
+    Position = UDim2.new(1,-80,0,6),
+    BackgroundColor3 = Purple,
+    Text = "—",
+    TextColor3 = White,
+    TextSize = 20
+})
+
+Corner(Min,8)
+
+-- CLOSE
+local Close = Create("TextButton",Header,{
+    Size = UDim2.new(0,35,0,30),
+    Position = UDim2.new(1,-40,0,6),
+    BackgroundColor3 = Color3.fromRGB(190,50,60),
+    Text = "X",
+    TextColor3 = White,
+    TextSize = 16
+})
+
+Corner(Close,8)
+
+-- SIDEBAR
+local Side = Create("Frame",Main,{
+    Size = UDim2.new(0,65,1,-50),
+    Position = UDim2.new(0,5,0,45),
+    BackgroundColor3 = Panel
+})
+
+Corner(Side,12)
+
+local Icons = {"⌂","⟳","◉","◈","⚙","☰"}
+
+for i,v in ipairs(Icons) do
+    local b = Create("TextButton",Side,{
+        Size = UDim2.new(0,45,0,42),
+        Position = UDim2.new(0,10,0,10+(i-1)*55),
+        BackgroundColor3 = Dark,
+        Text = v,
+        TextColor3 = White,
+        TextSize = 20
+    })
+    Corner(b,8)
 end
 
-getSeeds.OnServerInvoke = function(_player)
-    return getSeedNames()
+-- MENU
+local Center = Create("Frame",Main,{
+    Size = UDim2.new(0,245,1,-50),
+    Position = UDim2.new(0,75,0,45),
+    BackgroundColor3 = Panel
+})
+
+Corner(Center,12)
+
+Create("TextLabel",Center,{
+    Size = UDim2.new(1,0,0,45),
+    BackgroundTransparency = 1,
+    Text = "Automation",
+    TextColor3 = White,
+    TextSize = 19,
+    Font = Enum.Font.GothamBold
+})
+
+local function Menu(name,desc,y)
+    local b = Create("TextButton",Center,{
+        Size = UDim2.new(1,-18,0,62),
+        Position = UDim2.new(0,9,0,y),
+        BackgroundColor3 = Dark,
+        Text = name.."\n"..desc,
+        TextColor3 = White,
+        TextSize = 13,
+        Font = Enum.Font.GothamBold
+    })
+    Corner(b,10)
 end
 
-local function sendResult(player, success, message)
-    plantEvent:FireClient(player, "Result", success, message)
-end
+Menu("Spammer","Chat automation",50)
+Menu("Autofarm","Automatic farming",118)
+Menu("Automation","Plant and harvest",186)
+Menu("Collect","Collect items",254)
+Menu("Fishing","Fishing automation",322)
 
-plantEvent.OnServerEvent:Connect(function(player, action, seedName, spotName)
-    if action ~= "Plant" then
-        return
-    end
+-- RIGHT PANEL
+local Right = Create("Frame",Main,{
+    Size = UDim2.new(0,235,1,-50),
+    Position = UDim2.new(1,-240,0,45),
+    BackgroundColor3 = Panel
+})
 
-    if typeof(seedName) ~= "string" or typeof(spotName) ~= "string" then
-        return
-    end
+Corner(Right,12)
 
-    -- Rate-limit requests per player.
-    local now = os.clock()
-    if lastRequest[player] and now - lastRequest[player] < REQUEST_COOLDOWN then
-        return
-    end
-    lastRequest[player] = now
+Create("TextLabel",Right,{
+    Size = UDim2.new(1,0,0,45),
+    BackgroundTransparency = 1,
+    Text = "AUTOFARM",
+    TextColor3 = White,
+    TextSize = 18,
+    Font = Enum.Font.GothamBold
+})
 
-    local seedTemplate = seedModels:FindFirstChild(seedName)
-    local spot = plantSpots:FindFirstChild(spotName)
+-- BLOCK
+local Block = Create("TextButton",Right,{
+    Size = UDim2.new(1,-20,0,45),
+    Position = UDim2.new(0,10,0,50),
+    BackgroundColor3 = Dark,
+    Text = "Select Block",
+    TextColor3 = White,
+    TextSize = 14
+})
 
-    if not seedTemplate or not seedTemplate:IsA("Model") then
-        sendResult(player, false, "Seed tidak ditemukan")
-        return
-    end
+Corner(Block,8)
 
-    if not spot or not spot:IsA("BasePart") then
-        sendResult(player, false, "Plant spot tidak ditemukan")
-        return
-    end
+-- GRID
+Create("TextLabel",Right,{
+    Size = UDim2.new(1,-20,0,25),
+    Position = UDim2.new(0,10,0,103),
+    BackgroundTransparency = 1,
+    Text = "SELECT TILE 5x5",
+    TextColor3 = White,
+    TextSize = 13,
+    Font = Enum.Font.GothamBold
+})
 
-    if spot:GetAttribute("OwnerUserId") ~= player.UserId then
-        sendResult(player, false, "Spot bukan milikmu")
-        return
-    end
+local Grid = Create("Frame",Right,{
+    Size = UDim2.new(1,-20,0,215),
+    Position = UDim2.new(0,10,0,130),
+    BackgroundTransparency = 1
+})
 
-    if spot:GetAttribute("Planted") == true then
-        sendResult(player, false, "Spot sudah ditanami")
-        return
-    end
+Create("UIGridLayout",Grid,{
+    CellSize = UDim2.new(0,37,0,38),
+    CellPadding = UDim2.new(0,5,0,5)
+})
 
-    local inventoryAttribute = "Seed_" .. seedName
-    local amount = player:GetAttribute(inventoryAttribute) or 0
-    if typeof(amount) ~= "number" or amount < 1 then
-        sendResult(player, false, "Seed habis")
-        return
-    end
+local Selected = {}
 
-    local plant = seedTemplate:Clone()
-    plant.Name = seedName .. "_Plant"
+for i=1,25 do
+    local Tile = Create("TextButton",Grid,{
+        BackgroundColor3 = Dark,
+        Text = "",
+        LayoutOrder = i
+    })
 
-    local ok, err = pcall(function()
-        plant:PivotTo(spot.CFrame * CFrame.new(0, spot.Size.Y / 2, 0))
-        plant.Parent = workspace
+    Corner(Tile,6)
+
+    Tile.Activated:Connect(function()
+        Selected[i] = not Selected[i]
+
+        Tile.BackgroundColor3 = Selected[i]
+            and Purple or Dark
     end)
+end
 
-    if not ok then
-        plant:Destroy()
-        warn("AutoPlant placement error:", err)
-        sendResult(player, false, "Gagal meletakkan tanaman")
-        return
-    end
+-- START
+local Running = false
 
-    -- Commit state only after successful placement.
-    spot:SetAttribute("Planted", true)
-    player:SetAttribute(inventoryAttribute, amount - 1)
-    sendResult(player, true, "Berhasil menanam " .. seedName)
+local Start = Create("TextButton",Right,{
+    Size = UDim2.new(1,-20,0,38),
+    Position = UDim2.new(0,10,0,355),
+    BackgroundColor3 = Purple,
+    Text = "START",
+    TextColor3 = White,
+    TextSize = 14,
+    Font = Enum.Font.GothamBold
+})
+
+Corner(Start,8)
+
+Start.Activated:Connect(function()
+    Running = not Running
+    Start.Text = Running and "STOP" or "START"
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    lastRequest[player] = nil
+-- FLOATING BUTTON
+local Restore = Create("TextButton",GUI,{
+    Size = UDim2.new(0,75,0,45),
+    Position = UDim2.new(0,15,0.5,0),
+    BackgroundColor3 = Purple,
+    Text = "CEBOL",
+    TextColor3 = White,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    Visible = false
+})
+
+Corner(Restore,12)
+
+-- MINIMIZE
+Min.Activated:Connect(function()
+    Main.Visible = false
+    Restore.Visible = true
 end)
+
+-- RESTORE
+Restore.Activated:Connect(function()
+    Main.Visible = true
+    Restore.Visible = false
+end)
+
+-- CLOSE
+Close.Activated:Connect(function()
+    GUI:Destroy()
+end)
+
+print("CEBOL MOD V3 SUCCESS")
